@@ -6,21 +6,21 @@ import (
 
 type FifoSliceQueue struct {
 	types.Queue
-	items []*types.TaskContext
+	items []*types.TaskRunInfo
 }
 
 func NewFifoSliceQueue(buffsize int) *FifoSliceQueue {
 	return &FifoSliceQueue{
-		items: make([]*types.TaskContext, 0, buffsize),
+		items: make([]*types.TaskRunInfo, 0, buffsize),
 	}
 }
 
-func (fifo *FifoSliceQueue) Enqueue(ctx *types.TaskContext) error {
+func (fifo *FifoSliceQueue) Enqueue(ctx *types.TaskRunInfo) error {
 	fifo.items = append(fifo.items, ctx)
 	return nil
 }
 
-func (fifo *FifoSliceQueue) Dequeue() *types.TaskContext {
+func (fifo *FifoSliceQueue) Dequeue() *types.TaskRunInfo {
 	count := len(fifo.items)
 	if count < 1 {
 		return nil

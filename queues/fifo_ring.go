@@ -8,14 +8,14 @@ import (
 
 type FifoRingQueue struct {
 	types.Queue
-	buffer []*types.TaskContext
+	buffer []*types.TaskRunInfo
 	head   int
 	tail   int
 }
 
 func NewFifoRingQueue(capacity int) *FifoRingQueue {
 	return &FifoRingQueue{
-		buffer: make([]*types.TaskContext, capacity),
+		buffer: make([]*types.TaskRunInfo, capacity),
 		head:   0,
 		tail:   0,
 	}
@@ -24,14 +24,14 @@ func NewFifoRingQueue(capacity int) *FifoRingQueue {
 func (queue *FifoRingQueue) expand() {
 	newhead := cap(queue.buffer)
 	newcap := cap(queue.buffer) * 2
-	newbuf := make([]*types.TaskContext, newcap)
+	newbuf := make([]*types.TaskRunInfo, newcap)
 	copy(newbuf, queue.buffer)
 	runtime.GC()
 	queue.buffer = newbuf
 	queue.head = newhead
 }
 
-func (queue *FifoRingQueue) Enqueue(task *types.TaskContext) error {
+func (queue *FifoRingQueue) Enqueue(task *types.TaskRunInfo) error {
 	if queue.buffer[queue.head] != nil {
 		queue.expand()
 	}
@@ -46,7 +46,7 @@ func (queue *FifoRingQueue) Enqueue(task *types.TaskContext) error {
 	return nil
 }
 
-func (queue *FifoRingQueue) Dequeue() *types.TaskContext {
+func (queue *FifoRingQueue) Dequeue() *types.TaskRunInfo {
 	task := queue.buffer[queue.tail]
 	queue.buffer[queue.tail] = nil
 

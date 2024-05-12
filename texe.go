@@ -44,22 +44,23 @@ func NewTexe(opts ...func(*types.TexeOpts)) *Texe {
 	}
 }
 
-func (tex *Texe) QueueTask(def *types.TaskDef) (*types.TaskContext, error) {
-	texctx := &types.TaskContext{
-		Def:    def,
+func (tex *Texe) QueueTask(task *types.Task) (*types.TaskRunInfo, error) {
+	taskruninfo := &types.TaskRunInfo{
+		Task:   *task,
 		Status: types.TexeStatus_Unknown,
+		Error:  nil,
 	}
 
-	err := tex.Queue.Enqueue(texctx)
+	err := tex.Queue.Enqueue(taskruninfo)
 	if err != nil {
-		texctx.Status = types.TexeStatus_Error
-		texctx.Error = err
-		return texctx, err
+		taskruninfo.Status = types.TexeStatus_Error
+		taskruninfo.Error = err
+		return taskruninfo, err
 	}
 
-	texctx.Status = types.TexeStatus_Queued
+	taskruninfo.Status = types.TexeStatus_Queued
 
-	return texctx, nil
+	return taskruninfo, nil
 }
 
 func (tex *Texe) StartWithContext(ctx context.Context) error {
@@ -71,24 +72,26 @@ func (tex *Texe) StartWithContext(ctx context.Context) error {
 			}
 		default:
 			{
-				texctx := tex.Queue.Dequeue()
-				if texctx == nil {
+				taskruninfo := tex.Queue.Dequeue()
+				if taskruninfo == nil {
 					continue
 				}
 
 				tex.workers <- struct{}{}
+				taskruninfo.Status = types.TexeStatus_Running
+				taskruninfo.Exe.TaskStartingCallback(taskruninfo)
 
-				go func(tc *types.TaskContext) {
-					tc.Status = types.TexeStatus_Running
-					err := tc.Def.Exe.Start(tc)
-					<-tex.workers
+				go func(tri *types.TaskRunInfo) {
+					err := tri.Exe.Start(tri)
 					if err != nil {
-						tc.Error = err
-						tc.Status = types.TexeStatus_Error
+						tri.Error = err
+						tri.Status = types.TexeStatus_Error
 					} else {
-						tc.Status = types.TexeStatus_Complete
+						tri.Status = types.TexeStatus_Complete
 					}
-				}(texctx)
+					tri.Exe.TaskCompleteCallback(tri, err)
+					<-tex.workers
+				}(taskruninfo)
 			}
 		}
 	}

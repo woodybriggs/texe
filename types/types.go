@@ -1,8 +1,8 @@
 package types
 
 type Queue interface {
-	Enqueue(*TaskContext) error
-	Dequeue() *TaskContext
+	Enqueue(*TaskRunInfo) error
+	Dequeue() *TaskRunInfo
 }
 
 type TexeOpts struct {
@@ -11,10 +11,12 @@ type TexeOpts struct {
 }
 
 type TaskExe interface {
-	Start(*TaskContext) error
+	TaskStartingCallback(*TaskRunInfo)
+	Start(*TaskRunInfo) error
+	TaskCompleteCallback(*TaskRunInfo, error)
 }
 
-type TaskDef struct {
+type Task struct {
 	Exe         TaskExe
 	Description string
 }
@@ -31,11 +33,11 @@ const (
 )
 
 func (s TexeStatus) String() string {
-	return [...]string{"error", "stopped", "queued", "running", "complete"}[s]
+	return [...]string{"error", "unknown", "stopped", "queued", "running", "complete"}[s]
 }
 
-type TaskContext struct {
-	Def    *TaskDef
+type TaskRunInfo struct {
+	Task
 	Status TexeStatus
 	Error  error
 }
