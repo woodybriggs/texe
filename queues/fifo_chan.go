@@ -38,3 +38,7 @@ func (q *FifoChanQueue) Dequeue() *types.TaskRunInfo {
 		}
 	}
 }
+
+func (q *FifoChanQueue) Len() int {
+	return len(q.items)
+}
