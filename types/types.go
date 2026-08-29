@@ -5,6 +5,7 @@ import "context"
 type Queue interface {
 	Enqueue(context.Context, *TaskRunInfo) error
 	Dequeue() *TaskRunInfo
+	Len() int
 }
 
 type TexeOpts struct {
@@ -42,4 +43,5 @@ type TaskRunInfo struct {
 	Task
 	Status TexeStatus
 	Error  error
+	Done   chan struct{}
 }
