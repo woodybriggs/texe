@@ -58,3 +58,10 @@ func (queue *FifoRingQueue) Dequeue() *types.TaskRunInfo {
 
 	return task
 }
+
+func (queue *FifoRingQueue) Len() int {
+	if queue.head >= queue.tail {
+		return queue.head - queue.tail
+	}
+	return cap(queue.buffer) - queue.tail + queue.head
+}
