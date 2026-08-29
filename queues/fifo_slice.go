@@ -1,11 +1,14 @@
 package queues
 
 import (
+	"sync"
+
 	"github.com/woodybriggs/texe/types"
 )
 
 type FifoSliceQueue struct {
 	types.Queue
+	mu    sync.Mutex
 	items []*types.TaskRunInfo
 }
 
@@ -16,11 +19,15 @@ func NewFifoSliceQueue(buffsize int) *FifoSliceQueue {
 }
 
 func (fifo *FifoSliceQueue) Enqueue(ctx *types.TaskRunInfo) error {
+	fifo.mu.Lock()
+	defer fifo.mu.Unlock()
 	fifo.items = append(fifo.items, ctx)
 	return nil
 }
 
 func (fifo *FifoSliceQueue) Dequeue() *types.TaskRunInfo {
+	fifo.mu.Lock()
+	defer fifo.mu.Unlock()
 	count := len(fifo.items)
 	if count < 1 {
 		return nil
