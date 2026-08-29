@@ -3,7 +3,6 @@ package texe
 import (
 	"context"
 	"sync"
-	"time"
 
 	"github.com/woodybriggs/texe/queues"
 	"github.com/woodybriggs/texe/types"
@@ -11,8 +10,9 @@ import (
 
 type Texe struct {
 	types.TexeOpts
-	workers chan struct{}
-	wg      sync.WaitGroup
+	workers     chan struct{}
+	wg          sync.WaitGroup
+	queueNotify *queues.QueueWithNotify
 }
 
 func defaultOpts() types.TexeOpts {
@@ -41,9 +41,12 @@ func NewTexe(opts ...func(*types.TexeOpts)) *Texe {
 		fn(&o)
 	}
 
+	wrapped := queues.NewQueueWithNotify(o.Queue)
+
 	return &Texe{
-		TexeOpts: o,
-		workers:  make(chan struct{}, o.MaxWorkers),
+		TexeOpts:    o,
+		workers:     make(chan struct{}, o.MaxWorkers),
+		queueNotify: wrapped,
 	}
 }
 
@@ -55,7 +58,7 @@ func (tex *Texe) QueueTask(ctx context.Context, task *types.Task) (*types.TaskRu
 		Done:   make(chan struct{}),
 	}
 
-	err := tex.Queue.Enqueue(ctx, taskruninfo)
+	err := tex.queueNotify.Enqueue(ctx, taskruninfo)
 	if err != nil {
 		taskruninfo.Status = types.TexeStatus_Error
 		taskruninfo.Error = err
@@ -73,10 +76,9 @@ func (tex *Texe) StartWithContext(ctx context.Context) error {
 		case <-ctx.Done():
 			tex.wg.Wait()
 			return ctx.Err()
-		default:
+		case <-tex.queueNotify.Ready:
 			taskruninfo := tex.Queue.Dequeue()
 			if taskruninfo == nil {
-				time.Sleep(10 * time.Millisecond)
 				continue
 			}
 
