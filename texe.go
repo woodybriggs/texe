@@ -2,6 +2,7 @@ package texe
 
 import (
 	"context"
+	"time"
 
 	"github.com/woodybriggs/texe/queues"
 	"github.com/woodybriggs/texe/types"
@@ -74,6 +75,7 @@ func (tex *Texe) StartWithContext(ctx context.Context) error {
 			{
 				taskruninfo := tex.Queue.Dequeue()
 				if taskruninfo == nil {
+					time.Sleep(10 * time.Millisecond)
 					continue
 				}
 
