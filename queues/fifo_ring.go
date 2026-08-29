@@ -2,12 +2,14 @@ package queues
 
 import (
 	"runtime"
+	"sync"
 
 	"github.com/woodybriggs/texe/types"
 )
 
 type FifoRingQueue struct {
 	types.Queue
+	mu     sync.Mutex
 	buffer []*types.TaskRunInfo
 	head   int
 	tail   int
@@ -32,6 +34,8 @@ func (queue *FifoRingQueue) expand() {
 }
 
 func (queue *FifoRingQueue) Enqueue(task *types.TaskRunInfo) error {
+	queue.mu.Lock()
+	defer queue.mu.Unlock()
 	if queue.buffer[queue.head] != nil {
 		queue.expand()
 	}
@@ -47,6 +51,8 @@ func (queue *FifoRingQueue) Enqueue(task *types.TaskRunInfo) error {
 }
 
 func (queue *FifoRingQueue) Dequeue() *types.TaskRunInfo {
+	queue.mu.Lock()
+	defer queue.mu.Unlock()
 	task := queue.buffer[queue.tail]
 	queue.buffer[queue.tail] = nil
 
