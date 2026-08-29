@@ -1,6 +1,7 @@
 package queues
 
 import (
+	"context"
 	"sync"
 	"testing"
 
@@ -13,8 +14,8 @@ func TestFifoSliceQueue_EnqueueDequeue(t *testing.T) {
 	task1 := &types.TaskRunInfo{Status: types.TexeStatus_Queued}
 	task2 := &types.TaskRunInfo{Status: types.TexeStatus_Queued}
 
-	queue.Enqueue(task1)
-	queue.Enqueue(task2)
+	queue.Enqueue(context.Background(), task1)
+	queue.Enqueue(context.Background(), task2)
 
 	result := queue.Dequeue()
 	if result != task1 {
@@ -40,7 +41,7 @@ func TestFifoSliceQueue_Ordering(t *testing.T) {
 	queue := NewFifoSliceQueue(8)
 
 	for i := 0; i < 10; i++ {
-		queue.Enqueue(&types.TaskRunInfo{Status: types.TexeStatus_Queued})
+		queue.Enqueue(context.Background(), &types.TaskRunInfo{Status: types.TexeStatus_Queued})
 	}
 
 	for i := 0; i < 10; i++ {
@@ -64,7 +65,7 @@ func TestFifoSliceQueue_ConcurrentAccess(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			queue.Enqueue(&types.TaskRunInfo{Status: types.TexeStatus_Queued})
+			queue.Enqueue(context.Background(), &types.TaskRunInfo{Status: types.TexeStatus_Queued})
 		}()
 	}
 	wg.Wait()

@@ -1,6 +1,7 @@
 package queues
 
 import (
+	"context"
 	"sync"
 
 	"github.com/woodybriggs/texe/types"
@@ -18,10 +19,10 @@ func NewFifoSliceQueue(buffsize int) *FifoSliceQueue {
 	}
 }
 
-func (fifo *FifoSliceQueue) Enqueue(ctx *types.TaskRunInfo) error {
+func (fifo *FifoSliceQueue) Enqueue(ctx context.Context, task *types.TaskRunInfo) error {
 	fifo.mu.Lock()
 	defer fifo.mu.Unlock()
-	fifo.items = append(fifo.items, ctx)
+	fifo.items = append(fifo.items, task)
 	return nil
 }
 

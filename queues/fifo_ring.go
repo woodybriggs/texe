@@ -1,6 +1,7 @@
 package queues
 
 import (
+	"context"
 	"runtime"
 	"sync"
 
@@ -33,7 +34,7 @@ func (queue *FifoRingQueue) expand() {
 	queue.head = newhead
 }
 
-func (queue *FifoRingQueue) Enqueue(task *types.TaskRunInfo) error {
+func (queue *FifoRingQueue) Enqueue(ctx context.Context, task *types.TaskRunInfo) error {
 	queue.mu.Lock()
 	defer queue.mu.Unlock()
 	if queue.buffer[queue.head] != nil {

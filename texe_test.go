@@ -37,7 +37,7 @@ func TestTexe_QueueTask(t *testing.T) {
 		Description: "test task",
 	}
 
-	info, err := engine.QueueTask(task)
+	info, err := engine.QueueTask(context.Background(), task)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -61,7 +61,7 @@ func TestTexe_StartWithContext_ExecutesTask(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	_, err := engine.QueueTask(task)
+	_, err := engine.QueueTask(context.Background(), task)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -100,7 +100,7 @@ func TestTexe_StartWithContext_TaskError(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	info, err := engine.QueueTask(task)
+	info, err := engine.QueueTask(context.Background(), task)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -135,7 +135,7 @@ func TestTexe_StartWithContext_StatusTransitions(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	info, _ := engine.QueueTask(task)
+	info, _ := engine.QueueTask(context.Background(), task)
 
 	go func() {
 		time.Sleep(100 * time.Millisecond)

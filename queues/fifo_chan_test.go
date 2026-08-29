@@ -1,6 +1,7 @@
 package queues
 
 import (
+	"context"
 	"testing"
 
 	"github.com/woodybriggs/texe/types"
@@ -12,8 +13,8 @@ func TestFifoChanQueue_EnqueueDequeue(t *testing.T) {
 	task1 := &types.TaskRunInfo{Status: types.TexeStatus_Queued}
 	task2 := &types.TaskRunInfo{Status: types.TexeStatus_Queued}
 
-	queue.Enqueue(task1)
-	queue.Enqueue(task2)
+	queue.Enqueue(context.Background(), task1)
+	queue.Enqueue(context.Background(), task2)
 
 	result := queue.Dequeue()
 	if result != task1 {
