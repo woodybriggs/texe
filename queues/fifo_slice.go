@@ -1,6 +1,8 @@
 package queues
 
 import (
+	"context"
+
 	"github.com/woodybriggs/texe/types"
 )
 
@@ -15,8 +17,8 @@ func NewFifoSliceQueue(buffsize int) *FifoSliceQueue {
 	}
 }
 
-func (fifo *FifoSliceQueue) Enqueue(ctx *types.TaskRunInfo) error {
-	fifo.items = append(fifo.items, ctx)
+func (fifo *FifoSliceQueue) Enqueue(ctx context.Context, task *types.TaskRunInfo) error {
+	fifo.items = append(fifo.items, task)
 	return nil
 }
 

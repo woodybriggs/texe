@@ -1,6 +1,10 @@
 package queues
 
-import "github.com/woodybriggs/texe/types"
+import (
+	"context"
+
+	"github.com/woodybriggs/texe/types"
+)
 
 type FifoChanQueue struct {
 	types.Queue
@@ -13,9 +17,13 @@ func NewFifoChanQueue(buffsize int) *FifoChanQueue {
 	}
 }
 
-func (q *FifoChanQueue) Enqueue(task *types.TaskRunInfo) error {
-	q.items <- task
-	return nil
+func (q *FifoChanQueue) Enqueue(ctx context.Context, task *types.TaskRunInfo) error {
+	select {
+	case q.items <- task:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 func (q *FifoChanQueue) Dequeue() *types.TaskRunInfo {

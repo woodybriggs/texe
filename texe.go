@@ -44,14 +44,14 @@ func NewTexe(opts ...func(*types.TexeOpts)) *Texe {
 	}
 }
 
-func (tex *Texe) QueueTask(task *types.Task) (*types.TaskRunInfo, error) {
+func (tex *Texe) QueueTask(ctx context.Context, task *types.Task) (*types.TaskRunInfo, error) {
 	taskruninfo := &types.TaskRunInfo{
 		Task:   *task,
 		Status: types.TexeStatus_Unknown,
 		Error:  nil,
 	}
 
-	err := tex.Queue.Enqueue(taskruninfo)
+	err := tex.Queue.Enqueue(ctx, taskruninfo)
 	if err != nil {
 		taskruninfo.Status = types.TexeStatus_Error
 		taskruninfo.Error = err

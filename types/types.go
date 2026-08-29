@@ -1,7 +1,9 @@
 package types
 
+import "context"
+
 type Queue interface {
-	Enqueue(*TaskRunInfo) error
+	Enqueue(context.Context, *TaskRunInfo) error
 	Dequeue() *TaskRunInfo
 }
 

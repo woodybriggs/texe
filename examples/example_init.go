@@ -53,7 +53,7 @@ func main() {
 				Hello: fmt.Sprint(id),
 			},
 		}
-		_, err = tex.QueueTask(task)
+		_, err = tex.QueueTask(context.Background(), task)
 		fmt.Println(err)
 	}
 
