@@ -2,6 +2,8 @@ package texe
 
 import (
 	"context"
+	"sync"
+	"time"
 
 	"github.com/woodybriggs/texe/queues"
 	"github.com/woodybriggs/texe/types"
@@ -10,6 +12,7 @@ import (
 type Texe struct {
 	types.TexeOpts
 	workers chan struct{}
+	wg      sync.WaitGroup
 }
 
 func defaultOpts() types.TexeOpts {
@@ -67,32 +70,32 @@ func (tex *Texe) StartWithContext(ctx context.Context) error {
 	for {
 		select {
 		case <-ctx.Done():
-			{
-				return ctx.Err()
-			}
+			tex.wg.Wait()
+			return ctx.Err()
 		default:
-			{
-				taskruninfo := tex.Queue.Dequeue()
-				if taskruninfo == nil {
-					continue
-				}
-
-				tex.workers <- struct{}{}
-				taskruninfo.Status = types.TexeStatus_Running
-				taskruninfo.Exe.TaskStartingCallback(taskruninfo)
-
-				go func(tri *types.TaskRunInfo) {
-					err := tri.Exe.Start(tri)
-					if err != nil {
-						tri.Error = err
-						tri.Status = types.TexeStatus_Error
-					} else {
-						tri.Status = types.TexeStatus_Complete
-					}
-					tri.Exe.TaskCompleteCallback(tri, err)
-					<-tex.workers
-				}(taskruninfo)
+			taskruninfo := tex.Queue.Dequeue()
+			if taskruninfo == nil {
+				time.Sleep(10 * time.Millisecond)
+				continue
 			}
+
+			tex.workers <- struct{}{}
+			taskruninfo.Status = types.TexeStatus_Running
+			taskruninfo.Exe.TaskStartingCallback(taskruninfo)
+
+			tex.wg.Add(1)
+			go func(tri *types.TaskRunInfo) {
+				defer tex.wg.Done()
+				err := tri.Exe.Start(tri)
+				if err != nil {
+					tri.Error = err
+					tri.Status = types.TexeStatus_Error
+				} else {
+					tri.Status = types.TexeStatus_Complete
+				}
+				tri.Exe.TaskCompleteCallback(tri, err)
+				<-tex.workers
+			}(taskruninfo)
 		}
 	}
 }
