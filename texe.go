@@ -52,6 +52,7 @@ func (tex *Texe) QueueTask(task *types.Task) (*types.TaskRunInfo, error) {
 		Task:   *task,
 		Status: types.TexeStatus_Unknown,
 		Error:  nil,
+		Done:   make(chan struct{}),
 	}
 
 	err := tex.Queue.Enqueue(taskruninfo)
@@ -86,6 +87,7 @@ func (tex *Texe) StartWithContext(ctx context.Context) error {
 			tex.wg.Add(1)
 			go func(tri *types.TaskRunInfo) {
 				defer tex.wg.Done()
+				defer close(tri.Done)
 				err := tri.Exe.Start(tri)
 				if err != nil {
 					tri.Error = err

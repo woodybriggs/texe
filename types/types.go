@@ -3,6 +3,7 @@ package types
 type Queue interface {
 	Enqueue(*TaskRunInfo) error
 	Dequeue() *TaskRunInfo
+	Len() int
 }
 
 type TexeOpts struct {
@@ -40,4 +41,5 @@ type TaskRunInfo struct {
 	Task
 	Status TexeStatus
 	Error  error
+	Done   chan struct{}
 }
