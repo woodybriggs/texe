@@ -38,3 +38,7 @@ func (fifo *FifoSliceQueue) Dequeue() *types.TaskRunInfo {
 
 	return popped
 }
+
+func (fifo *FifoSliceQueue) Len() int {
+	return len(fifo.items)
+}
