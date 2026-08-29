@@ -53,6 +53,9 @@ func (queue *FifoRingQueue) Enqueue(task *types.TaskRunInfo) error {
 func (queue *FifoRingQueue) Dequeue() *types.TaskRunInfo {
 	queue.mu.Lock()
 	defer queue.mu.Unlock()
+	if queue.head == queue.tail {
+		return nil
+	}
 	task := queue.buffer[queue.tail]
 	queue.buffer[queue.tail] = nil
 
